@@ -19,11 +19,9 @@ include 'confirm.php';
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="../js/modernizr-2.6.2.js"></script>
     <link rel="shortcut icon" href="../img/teamraterlogo.png">
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
 
-
-    <script src="https://cdn.datatables.net/1.10.18/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.18/js/dataTables.bootstrap.min.js"></script>
 </head>
 
 <body>
@@ -185,6 +183,48 @@ include 'confirm.php';
             <?php include 'footer.php'; ?>
 
         </footer>
+
+        <div class="modal fade" id="rateNewTeammateModal" tabindex="-1" role="dialog" aria-labelledby="rateTeammateModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="rateTeammateModalLabel">Rate Your Teammate</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form class="form-inline" action="" method="post">
+                            <div class="form-group">
+                                <label for="fname">First Name:</label>
+                                <input type="text" class="form-control" id="fname" name="fname" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lname">Last Name:</label>
+                                <input type="text" class="form-control" id="lname" name="lname" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="middle_initial">Middle Initial:</label>
+                                <input type="text" class="form-control" id="middle_initial" name="middle_initial">
+                            </div>
+                            <div class="form-group">
+                                <label for="association">Association:</label>
+                                <input type="text" class="form-control" id="association" name="association" required>
+                            </div>
+                            <br><br>
+                            <div id="questionFieldsForNewUser">
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="submitNewUser">Submit</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
     </div>
 
 
@@ -230,9 +270,9 @@ include 'confirm.php';
                         $.each(data.users_data, function(index, user) {
                             usersTable.append('<tr><td>' + user.fname + '</td><td>' + user.middle_initial + '</td><td>' + user.lname + '</td><td>' + user.association + '</td><td>' + user.rating_value + '</td><td>' + user.numberofraters + '</td></tr>');
                         });
-                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a></td></tr>');
+                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a> <button onclick="rateOldUser()">Rate User</button></td></tr>');
                     } else {
-                        usersTable.append('<tr><td colspan="6">No users found</td></tr>');
+                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a> <button onclick="rateNewTeammate()">Add User</button></td></tr>');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -240,6 +280,10 @@ include 'confirm.php';
                 }
             });
         });
+
+        function rateOldUser() {
+            window.location.href = "rate.php";
+        }
 
         $('#fullnamesubmit').click(function(e) {
             e.preventDefault();
@@ -263,10 +307,10 @@ include 'confirm.php';
                                 usersTable.append('<tr><td>' + user.fname + '</td><td>' + user.middle_initial + '</td><td>' + user.lname + '</td><td>' + user.association + '</td><td>' + rating.criterianame + ': ' + rating.rating_value + '</td><td>' + rating.numberofraters + '</td></tr>');
                             });
                         });
-                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a></td></tr>');
+                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a> <button onclick="rateOldUser()">Rate User</button></td></tr>');
 
                     } else {
-                        usersTable.append('<tr><td colspan="6">No users found</td></tr>');
+                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a> <button onclick="rateNewTeammate()">Add User</button></td></tr>');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -295,10 +339,10 @@ include 'confirm.php';
                                 usersTable.append('<tr><td>' + user.fname + '</td><td>' + user.middle_initial + '</td><td>' + user.lname + '</td><td>' + user.association + '</td><td>' + rating.criterianame + ': ' + rating.rating_value + '</td><td>' + rating.numberofraters + '</td></tr>');
                             });
                         });
-                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a></td></tr>');
+                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a> <button onclick="rateOldUser()">Rate User</button></td></tr>');
 
                     } else {
-                        usersTable.append('<tr><td colspan="6">No users found</td></tr>');
+                        usersTable.append('<tr><td colspan="6"><a onclick= window.location.reload()>Reset</a> <button onclick="rateNewTeammate()">Add User</button></td></tr>');
                     }
                 },
                 error: function(xhr, status, error) {
@@ -314,6 +358,111 @@ include 'confirm.php';
                 usersTable.empty();
             });
         }
+
+        function rateNewTeammate() {
+            $('#rateNewTeammateModal').modal('show');
+            fetchCriteriaAndGenerateQuestionsForNewUser();
+        }
+
+
+        function fetchCriteriaAndGenerateQuestionsForNewUser() {
+            $.ajax({
+                type: "POST",
+                url: "../actions/fetch_all_criteria.php",
+                dataType: "json",
+                success: function(data) {
+                    if (data.success) {
+                        var questionFields = $("#questionFieldsForNewUser");
+                        questionFields.empty();
+                        $.each(data.criteria, function(index, criterion) {
+                            var question = $("<div></div>")
+                                .addClass("form-group")
+                                .append($("<label></label>")
+                                    .text("Rate your temmate in terms of their " + criterion.criterianame.toLowerCase() + " (" + criterion.description + ")"))
+                                .append($("<input>")
+                                    .attr("type", "number")
+                                    .addClass("form-control")
+                                    .attr("name", "q" + criterion.criteriaid)
+                                    .attr("placeholder", "Enter rating (1-10)")
+                                    .attr("min", "1")
+                                    .attr("max", "10")
+                                    .prop("required", true));
+                            questionFields.append(question);
+                        });
+                    } else {
+                        console.error("Error fetching criteria: " + data.message);
+                    }
+                }
+            });
+        }
+
+
+
+
+        $("#submitNewUser").click(function() {
+            var fname = $("#fname").val();
+            var lname = $("#lname").val();
+            var middle_initial = $("#middle_initial").val();
+            var association = $("#association").val();
+            var target_criteriaids = "";
+            var values = "";
+            $("#questionFieldsForNewUser input").each(function(index, input) {
+                target_criteriaids += $(input).attr("name").substring(1) + ",";
+                var numericValue = parseFloat($(input).val());
+                if (isNaN(numericValue)) {
+                    numericValue = $(input).val();
+                }
+                values += numericValue + ",";
+            });
+            target_criteriaids = target_criteriaids.slice(0, -1);
+            values = values.slice(0, -1);
+
+            $.ajax({
+                type: "POST",
+                url: "../actions/add_new_user.php",
+                data: {
+                    fname: fname,
+                    lname: lname,
+                    middle_initial: middle_initial,
+                    association: association,
+                    target_criteriaids: target_criteriaids,
+                    values: values
+                },
+                dataType: "json",
+                success: function(data) {
+                    if (data.success) {
+                        var userid = data.userid;
+                        $.ajax({
+                            type: "POST",
+                            url: "../actions/update_ratings_action.php",
+                            data: {
+                                target_userid: userid,
+                                target_criteriaids: target_criteriaids,
+                                values: values
+                            },
+                            dataType: "json",
+                            success: function(data) {
+                                if (data.success) {
+                                    swal({
+                                        title: "Success",
+                                        text: data.message,
+                                        icon: "success",
+                                        buttons: true,
+                                        dangerMode: false,
+                                    }).then((value) => {
+                                        window.location.href = "index.php";
+                                    });
+                                } else {
+                                    swal("Error", data.message, "error");
+                                }
+                            }
+                        });
+                    } else {
+                        swal("Error", data.message, "error");
+                    }
+                }
+            });
+        });
     </script>
 
 </body>

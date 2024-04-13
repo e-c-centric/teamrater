@@ -1,7 +1,3 @@
-<?php
-include 'confirm.php';
-?>
-
 <!DOCTYPE html>
 <html>
 

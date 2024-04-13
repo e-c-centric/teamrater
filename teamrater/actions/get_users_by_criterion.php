@@ -1,15 +1,11 @@
 <?php
-// Set headers to return JSON data
 header('Content-Type: application/json');
 
-// Include database connection
 require_once '../settings/connection.php';
 
-// Retrieve criteria ID from GET request
 $criteriaid = $_GET['criteriaid'] ?? '';
 $order = $_GET['order'] ?? '';
 
-// Validate criteria ID
 if (empty($criteriaid)) {
     echo json_encode(array('success' => false, 'message' => 'Criteria ID is required'));
     exit;
@@ -32,10 +28,8 @@ $stmt->bind_param("i", $criteriaid);
 $stmt->execute();
 $result = $stmt->get_result();
 
-// Initialize array to store users data
 $users_data = array();
 
-// Fetch users data and add to array
 while ($row = $result->fetch_assoc()) {
     $users_data[] = array(
         'userid' => $row['userid'],
@@ -48,9 +42,7 @@ while ($row = $result->fetch_assoc()) {
     );
 }
 
-// Return users data as JSON response
 echo json_encode(array('success' => true, 'users_data' => $users_data));
 
-// Close statement and database connection
 $stmt->close();
 $conn->close();

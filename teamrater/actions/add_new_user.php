@@ -1,35 +1,28 @@
 <?php
 header('Content-Type: application/json');
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    require_once '../settings/connection.php';
+require_once '../settings/connection.php';
 
-    $full_name = $_POST['full_name'] ?? '';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' || $_SERVER['REQUEST_METHOD'] === 'GET') {
+    $fname = $_REQUEST['fname'] ?? '';
+    $lname = $_REQUEST['lname'] ?? '';
+    $association = $_REQUEST['association'] ?? '';
+    $middle_initial = $_REQUEST['middle_initial'] ?? '';
+    $target_criteriaids = $_REQUEST['target_criteriaids'] ?? '';
+    $values = $_REQUEST['values'] ?? '';
 
-    if (empty($full_name)) {
-        echo json_encode(array('success' => false, 'message' => 'Full name is required'));
+    if (empty($target_criteriaids) || empty($values)) {
+        echo json_encode(array('success' => false, 'message' => 'Target user ID, criteria IDs, and values are required'));
         exit;
     }
 
-    $email = 'dummy@example.com';
-    $password = 'dummy_password';
+    $stmt = $conn->prepare("INSERT INTO User (fname, lname, middle_initial, association) VALUES (?, ?, ?, ?)");
+    $stmt->bind_param("ssss", $fname, $lname, $middle_initial, $association);
 
-    $sql = "INSERT INTO User (email, password) VALUES (?, ?)";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ss", $email, $password);
     if ($stmt->execute()) {
-        $new_user_id = $stmt->insert_id;
-
-        $sql_update_name = "UPDATE User SET full_name = ? WHERE userid = ?";
-        $stmt_update_name = $conn->prepare($sql_update_name);
-        $stmt_update_name->bind_param("si", $full_name, $new_user_id);
-        $stmt_update_name->execute();
-
-        $stmt_update_name->close();
-
-        echo json_encode(array('success' => true, 'message' => 'New user added successfully'));
+        echo json_encode(array('success' => true, 'userid' => $conn->insert_id));
     } else {
-        echo json_encode(array('success' => false, 'message' => 'Failed to add new user'));
+        echo json_encode(array('success' => false, 'message' => 'Failed to create user'));
     }
 
     $stmt->close();
@@ -37,4 +30,3 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     echo json_encode(array('success' => false, 'message' => 'Invalid request method'));
 }
-?>
